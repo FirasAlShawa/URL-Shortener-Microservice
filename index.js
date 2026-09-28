@@ -24,7 +24,7 @@ const getUrlRow = db.prepare("SELECT * FROM shorturls WHERE id = ?");
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
-app.use(cors({ origin: 'https://www.freecodecamp.org' }));
+app.use(cors({ origin: "https://www.freecodecamp.org" }));
 // app.use("/public", express.static(`${process.cwd()}/public`));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -41,11 +41,14 @@ app.get("/api/hello", function (req, res) {
 app.post("/api/shorturl", async (req, res) => {
   let { url } = req.body;
   url = sanitizeUserUrl(url);
-  const parsedUrl = new URL(url);
+  if (!url) {
+    return res.json({ error: "invalid url" });
+  }
   try {
+    const parsedUrl = new URL(url);
     const lookupResult = await dns.lookup(parsedUrl.hostname);
-    if(lookupResult){
-      console.log(lookupResult)
+    if (lookupResult) {
+      console.log(lookupResult);
     }
     const result = insertUrlStmt.run({ url: url });
 
@@ -54,8 +57,8 @@ app.post("/api/shorturl", async (req, res) => {
       short_url: result.lastInsertRowid,
     });
   } catch (error) {
-    console.error('Lookup failed:', error.message);
-    res.json({ error: "invalid url", summary:error });
+    console.error("Lookup failed:", error.message);
+    res.json({ error: "invalid url" });
   }
   //http://iioiqwoe.com/ as invalud url
 });
@@ -78,7 +81,7 @@ app.get("/api/shorturl/:id", (req, res) => {
 });
 
 app.get("/api/check", (req, res) => {
-  const urls = ["https:/google.com","www.google2.com/noon/books/aasd", "https://google2.com", "http://google3.com", "https://www.google4.com", "http://www.google5.com"]
+  const urls = ["https:/google.com", "www.google2.com/noon/books/aasd", "https://google2.com", "http://google3.com", "https://www.google4.com", "http://www.google5.com"];
 
   const checkValue = urls.map((url) => {
     try {
@@ -87,22 +90,21 @@ app.get("/api/check", (req, res) => {
         sanitized: sanitizeUserUrl(url),
       };
     } catch (error) {
-      console.log(`url :$${url} \nError ${error}`)
+      console.log(`url :$${url} \nError ${error}`);
       return;
     }
-
   });
 
-  res.json(checkValue)
-})
+  res.json(checkValue);
+});
 
 function sanitizeUserUrl(input) {
-  if (!input || typeof input !== 'string') return null;
+  if (!input || typeof input !== "string") return null;
 
   let trimmedInput = input.trim();
 
   // 1. Fix single-slash typos after scheme (e.g., https:/google.com -> https://google.com)
-  trimmedInput = trimmedInput.replace(/^([a-z][a-z0-9+.-]*):\/([^\/])/i, '$1://$2');
+  trimmedInput = trimmedInput.replace(/^([a-z][a-z0-9+.-]*):\/([^\/])/i, "$1://$2");
 
   // 2. Automatically prepend https:// if missing a valid scheme with double slashes
   const hasProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmedInput);
@@ -114,7 +116,7 @@ function sanitizeUserUrl(input) {
     const parsedUrl = new URL(trimmedInput);
 
     // 3. Enforce secure protocols ONLY (Blocks javascript:, data:, file:, etc.)
-    const allowedProtocols = ['http:', 'https:'];
+    const allowedProtocols = ["http:", "https:"];
     if (!allowedProtocols.includes(parsedUrl.protocol)) {
       return null;
     }
@@ -130,6 +132,6 @@ function sanitizeUserUrl(input) {
   }
 }
 
-app.listen(3000,"0.0.0.0", function () {
+app.listen(port, "0.0.0.0", function () {
   console.log(`Listening on port ${port}`);
 });
