@@ -24,8 +24,8 @@ const getUrlRow = db.prepare("SELECT * FROM shorturls WHERE id = ?");
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
-app.use(cors({ origin: '*' }));
-app.use("/public", express.static(`${process.cwd()}/public`));
+app.use(cors({ optionsSuccessStatus: 200 })); // Required for freeCodeCamp
+// app.use("/public", express.static(`${process.cwd()}/public`));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
